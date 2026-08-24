@@ -86,9 +86,10 @@ Evaluación sobre el conjunto de test (30% final cronológico):
 
 | Modelo | MAE (Días) | RMSE (Días) | $R^2$ | Estado |
 | :--- | :---: | :---: | :---: | :---: |
-| **Decision Tree Regressor** | 4.31 | 5.86 | 0.119 | *Árbol simple* |
-| **Random Forest Regressor** | 3.78 | **5.21** | 0.291 | *Ensemble Bagging* |
-| **HistGradientBoostingRegressor** | **3.75** | 5.22 | **0.292** | 🏆 **Ganador (Producción)** |
+| **Dummy Regressor (Mediana)** | 5.21 | 6.48 | -0.0911 | *Baseline* |
+| **Decision Tree Regressor** | 3.94 | 5.42 | 0.2368 | *Árbol simple* |
+| **Random Forest Regressor** | 3.78 | **5.21** | **0.2939** | *Ensemble Bagging* |
+| **HistGradientBoostingRegressor** | **3.75** | 5.22 | 0.2921 | 🏆 **Ganador (Producción)** |
 
 > 💡 **Variables más influyentes** (según *Permutation Feature Importance*): `distance_km`, `estimated_days`, `total_volume_cm3`, `total_weight_g` y la fricción interestatal (`is_same_state`).
 
