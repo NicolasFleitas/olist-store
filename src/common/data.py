@@ -30,3 +30,12 @@ def load_delivery_raw_data() -> dict[str, pd.DataFrame]:
 def load_sentiment_raw_data() -> pd.DataFrame:
     """Carga la tabla de reseñas de órdenes para análisis de sentimiento."""
     return load_csv("olist_order_reviews_dataset.csv")
+
+
+def load_recommendations_raw_data() -> dict[str, pd.DataFrame]:
+    """Carga las tablas base para el sistema de recomendación de productos."""
+    return {
+        "products": load_csv("olist_products_dataset.csv"),
+        "items": load_csv("olist_order_items_dataset.csv"),
+        "reviews": load_csv("olist_order_reviews_dataset.csv"),
+    }
