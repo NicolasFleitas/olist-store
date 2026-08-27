@@ -25,3 +25,8 @@ def load_delivery_raw_data() -> dict[str, pd.DataFrame]:
         "sellers": load_csv("olist_sellers_dataset.csv"),
         "geo": load_csv("olist_geolocation_dataset.csv"),
     }
+
+
+def load_sentiment_raw_data() -> pd.DataFrame:
+    """Carga la tabla de reseñas de órdenes para análisis de sentimiento."""
+    return load_csv("olist_order_reviews_dataset.csv")
