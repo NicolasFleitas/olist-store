@@ -1,6 +1,6 @@
 # 📦 Olist Store — Machine Learning Platform
 
-> Sistema modular de Machine Learning para e-commerce (Olist Brasil). Implementa pipelines desacoplados para predicción de tiempos de entrega y análisis de sentimiento en reseñas de clientes con validación temporal y trazabilidad completa.
+> Sistema modular de Machine Learning para e-commerce (Olist Brasil). Implementa pipelines desacoplados para predicción de tiempos de entrega, análisis de sentimiento en reseñas y recomendación personalizada de productos con validación y trazabilidad completa.
 
 ---
 
@@ -28,6 +28,18 @@ flowchart LR
     D --> E[Diagnóstico & Visualizaciones]
 ```
 
+### 3. 🛍️ Sistema de Recomendación de Productos (Clustering & K-Means)
+Segmentar el catálogo en clusters de comportamiento comercial homogéneo (**K-Means + PCA**) para recomendar artículos de la **misma categoría y gama similar** calculando distancias euclidianas intra-cluster.
+
+```mermaid
+flowchart LR
+    A[Productos, Items, Reviews] --> B[src.common.data]
+    B --> C[src.recommendations.features]
+    C --> D[K-Means Clustering + PCA]
+    D --> E[Similitud Euclidiana Intra-Cluster]
+    E --> F[Diagnóstico & Visualizaciones]
+```
+
 ---
 
 ## 🏛️ Arquitectura del Repositorio (*Screaming Architecture*)
@@ -38,16 +50,19 @@ La estructura del código está desacoplada por dominios de negocio:
 olist_store/
 ├── datasets/                 # Datos relacionales de Olist (CSVs)
 ├── notebooks/
-│   ├── 01_predict_delivery.ipynb     # Pipeline de predicción de tiempos de entrega
-│   └── 02_sentiment_analysis.ipynb   # Pipeline de análisis de sentimiento (NLP)
+│   ├── 01_predict_delivery.ipynb           # Pipeline de predicción de tiempos de entrega
+│   ├── 02_sentiment_analysis.ipynb         # Pipeline de análisis de sentimiento (NLP)
+│   └── 03_product_recommendations.ipynb    # Pipeline de clustering y recomendación
 ├── src/
 │   ├── common/               # Configuración central y cargadores comunes
 │   │   ├── config.py         # Resolución determinista de rutas del proyecto
-│   │   └── data.py           # Ingesta de tablas relacionales y reviews
+│   │   └── data.py           # Ingesta de tablas relacionales, reviews y productos
 │   ├── delivery/             # Dominio: Tiempos de Entrega (Completado)
 │   │   ├── features.py       # Haversine, cubicaje, merges y target
 │   │   └── viz.py            # Scatter real vs pred, Permutation Importance, Residuos
-│   ├── recommendations/      # Dominio: Recomendación de Productos (Esqueleto)
+│   ├── recommendations/      # Dominio: Recomendación de Productos (Completado)
+│   │   ├── features.py       # Agregación por producto, log-transforms, K-Means y KNN
+│   │   └── viz.py            # Método del codo, Silhouette Score y dispersión PCA 2D
 │   └── sentiment/            # Dominio: Análisis de Reseñas NLP (Completado)
 │       ├── features.py       # Preprocesamiento, stopwords NLTK y pipelines TF-IDF
 │       └── viz.py            # Matrices de confusión y coeficientes Top 15
@@ -83,6 +98,9 @@ uv run jupyter lab notebooks/01_predict_delivery.ipynb
 
 # Pipeline de Análisis de Sentimiento (NLP)
 uv run jupyter lab notebooks/02_sentiment_analysis.ipynb
+
+# Pipeline de Recomendación de Productos (Clustering)
+uv run jupyter lab notebooks/03_product_recommendations.ipynb
 ```
 
 ---
@@ -129,6 +147,29 @@ uv run jupyter lab notebooks/02_sentiment_analysis.ipynb
 
 ---
 
+## 🔬 Pipeline de Recomendación de Productos: Decisiones Técnicas Clave
+
+| Etapa | Decisión Técnica | Justificación de Negocio / Matemática |
+| :--- | :--- | :--- |
+| **Agregación a Nivel Producto** | Promedios ponderados e imputación | Modela 32.951 productos consolidando precio, flete, ventas y review medio. |
+| **Estabilización de Distribuciones** | Transformación $\log(1 + x)$ | Suprime asimetrías extremas en precios y ventas para evitar distorsiones euclidianas. |
+| **Selección de K Óptimo** | Método del Codo + Silhouette Score | Evalúa $K \in [2,7]$ seleccionando $K=5$ por máxima cohesión y separación. |
+| **Recomendación Híbrida** | Restricción Categorial + Similitud Intra-cluster | Garantiza coherencia de categoría y similitud en gama y comportamiento comercial. |
+
+### 📊 Perfiles de Clusters de Catálogo (K=5)
+
+| Cluster | Segmento Comercial | Precio Medio | Flete Medio | Review Score | Ventas | % Catálogo |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: |
+| **0** | Ultra-Económico / Flete Crítico | $20.65 | $18.19 | 4.21⭐ | 2.22 | 11.77% |
+| **1** | Gama Media / Satisfecho | $92.71 | $15.16 | 4.70⭐ | 1.53 | 42.34% |
+| **2** | Alta Rotación / Best Sellers | $94.21 | $18.01 | 4.05⭐ | 14.91 | 13.27% |
+| **3** | Baja Calificación / Riesgo | $116.67 | $18.07 | 1.88⭐ | 1.54 | 15.76% |
+| **4** | Premium / High-Ticket | $431.53 | $43.93 | 4.32⭐ | 1.82 | 16.85% |
+
+> 📈 **Métricas Globales de Agrupamiento**: Calinski-Harabasz: `10011.06` | Davies-Bouldin: `1.0833`.
+
+---
+
 ## 🛠️ Calidad de Código y Estándares
 
 El proyecto cumple con estándares estrictos de tipado y estilo:
@@ -141,4 +182,5 @@ uv run ruff format --check src/
 # Verificación de tipos estática
 uv run --with pyright pyright src/
 ```
+
 
