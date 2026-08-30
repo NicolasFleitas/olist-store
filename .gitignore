@@ -26,8 +26,6 @@ htmlcov/
 
 # Local datasets and exports
 data/
-datasets/
-*.csv
 *.parquet
 
 # OS and editor files
